@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kertotaulupeli</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1><a href="index.html"><img src="mato.svg" alt="matikkamato" style="width:10%;height:10%;"></a>matikkamato</h1>
+    <h2>kertotaulut</h2>
+    <p>Valitse kertotaulu:
+
+    <!-- Kertotaulun valinta -->
+    <select id="table-selection" onchange="nextQuestion()">
+        <option value="0">Satunnainen</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+</p>
+    <div id="game-container">
+        <p id="question"></p>
+        <div id="answer-buttons">
+            <!-- Vastausvaihtoehdot tulevat tänne -->
+        </div>
+        <p id="result"></p>
+        <p>Oikeat vastaukset: <span id="correct">0</span></p>
+        <p>Väärät vastaukset: <span id="incorrect">0</span></p>
+        <button onclick="nextQuestion()">Seuraava kysymys</button>
+    </div>
+
+    <script>
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let num1, num2, correctAnswer;
+
+        // Luo uusi kysymys
+        function generateQuestion() {
+            const selectedTable = parseInt(document.getElementById("table-selection").value);
+
+            // Jos valittu kertotaulu on 0, valitaan satunnainen luku 1-10, muuten käytetään valittua kertotaulua
+            num1 = selectedTable === 0 ? Math.floor(Math.random() * 10) + 1 : selectedTable;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            correctAnswer = num1 * num2;
+
+            document.getElementById("question").textContent = `${num1} ∙ ${num2} =`;
+
+            // Luo vastausvaihtoehdot
+            generateAnswerOptions();
+        }
+
+        // Luo vastausvaihtoehdot
+        function generateAnswerOptions() {
+            const answerButtonsDiv = document.getElementById("answer-buttons");
+            answerButtonsDiv.innerHTML = ''; // Tyhjennetään vanhat vaihtoehdot
+            const selectedTable = parseInt(document.getElementById("table-selection").value);
+
+            // Satunnaiset vaihtoehdot, jotka kuuluvat valittuun kertotauluun
+            const answers = [correctAnswer];
+            while (answers.length < 4) {
+                // Jos valittuna on tietty kertotaulu, luodaan vastaus siitä kertotaulusta
+                const wrongNum = Math.floor(Math.random() * 10) + 1;
+                const wrongAnswer = selectedTable === 0
+                    ? (Math.floor(Math.random() * 10) + 1) * wrongNum
+                    : selectedTable * wrongNum;
+
+                if (!answers.includes(wrongAnswer)) {
+                    answers.push(wrongAnswer);
+                }
+            }
+
+            // Sekoitetaan vastausvaihtoehdot
+            answers.sort(() => Math.random() - 0.5);
+
+            // Lisätään vaihtoehdot nappeina
+            answers.forEach(answer => {
+                const button = document.createElement("button");
+                button.textContent = answer;
+                button.className = "answer-button";
+                button.onclick = () => checkAnswer(button, answer);
+                answerButtonsDiv.appendChild(button);
+            });
+        }
+
+        // Tarkista käyttäjän vastaus
+        function checkAnswer(button, selectedAnswer) {
+            // Poistetaan klikkausmahdollisuus muista painikkeista
+            const buttons = document.querySelectorAll(".answer-button");
+            buttons.forEach(btn => btn.onclick = null);
+
+            if (selectedAnswer === correctAnswer) {
+                correctAnswers++;
+                document.getElementById("result").textContent = "Oikein!";
+                document.getElementById("correct").textContent = correctAnswers;
+                button.classList.add("correct"); // Väritetään oikea vastaus vihreäksi
+            } else {
+                incorrectAnswers++;
+                document.getElementById("result").textContent = `Väärin! Oikea vastaus on ${correctAnswer}.`;
+                document.getElementById("incorrect").textContent = incorrectAnswers;
+                button.classList.add("incorrect"); // Väritetään väärä vastaus punaiseksi
+
+                // Väritetään oikea vastaus vihreäksi
+                buttons.forEach(btn => {
+                    if (parseInt(btn.textContent) === correctAnswer) {
+                        btn.classList.add("correct");
+                    }
+                });
+            }
+        }
+
+        // Siirry seuraavaan kysymykseen
+        function nextQuestion() {
+            generateQuestion();
+            document.getElementById("result").textContent = ''; // Tyhjennetään tulosviesti
+        }
+
+        // Aloita peli
+        generateQuestion();
+    </script>
+</body>
+</html>
