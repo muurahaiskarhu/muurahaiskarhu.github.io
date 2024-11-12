@@ -4,10 +4,14 @@
  }
         #game-container { margin-top: 10px; padding: 10px; }
 
+	a:link#otsikko, a:visited#otsikko  {
+	color: black;
+	text-decoration: none;}
+
 	a:link#valikko, a:visited#valikko  {
 	background-color: #e3e3e3;
 	color: black;
-	padding: 14px 25px;
+	padding: 10px 16px;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;}
