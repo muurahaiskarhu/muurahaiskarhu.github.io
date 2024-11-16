@@ -47,8 +47,8 @@
             const selectedTable = parseInt(document.getElementById("table-selection").value);
 
             // Jos valittu kertotaulu on 0, valitaan satunnainen luku 1-10, muuten käytetään valittua kertotaulua
-            num1 = selectedTable === 0 ? Math.floor(Math.random() * 10) + 1 : selectedTable;
-            num2 = Math.floor(Math.random() * 10) + 1;
+            num2 = selectedTable === 0 ? Math.floor(Math.random() * 10) + 1 : selectedTable;
+            num1 = Math.floor(Math.random() * 10) + 1;
             correctAnswer = num1 * num2;
 
             document.getElementById("question").textContent = `${num1} ∙ ${num2} =`;
