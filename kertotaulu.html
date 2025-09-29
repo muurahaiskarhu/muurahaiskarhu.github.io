@@ -16,6 +16,15 @@
     <h1><a id="otsikko" href="index.html"><img src="mato.svg" alt="matikkamato" style="width:10%;height:10%;">matikkamato</a></h1>
     <h2>Kertotaulut</h2>
 
+
+    <div id="game-container">
+        <p id="question"></p>
+        <div id="answer-box"></div>
+        <p id="result"></p>
+        <p>Oikeat vastaukset: <span id="correct">0</span></p>
+        <p>Väärät vastaukset: <span id="incorrect">0</span></p>
+    </div>
+
     <p>Valitse kertotaulu(t):</p>
     <select id="table-selection" multiple size="6" onchange="nextQuestion()">
         <option value="0">Satunnainen (1–10)</option>
@@ -26,13 +35,6 @@
     <button type="button" onclick="selectAllTables()">Valitse kaikki</button>
     <button type="button" onclick="clearAllTables()">Tyhjennä valinta</button>
 
-    <div id="game-container">
-        <p id="question"></p>
-        <div id="answer-box"></div>
-        <p id="result"></p>
-        <p>Oikeat vastaukset: <span id="correct">0</span></p>
-        <p>Väärät vastaukset: <span id="incorrect">0</span></p>
-    </div>
 
     <script>
         let correctAnswers = 0, incorrectAnswers = 0;
@@ -80,12 +82,14 @@
                 correctAnswers++;
                 document.getElementById("result").textContent = "Oikein!";
                 document.getElementById("correct").textContent = correctAnswers;
+                                      delay = 2000; // 1 s oikein
             } else {
                 incorrectAnswers++;
                 document.getElementById("result").textContent = `Väärin! Oikea vastaus on ${correctAnswer}.`;
                 document.getElementById("incorrect").textContent = incorrectAnswers;
+                                      delay = 2500; // 2,5 s väärin
             }
-            setTimeout(nextQuestion, 1000);
+            setTimeout(nextQuestion, delay);
         }
 
         function nextQuestion() {
