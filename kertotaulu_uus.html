@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>matikkamato – tekstikenttä</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="mato.svg">
+    <style>
+        .correct { background-color: lightgreen; }
+        .incorrect { background-color: pink; }
+
+        .correct-text {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect-text {
+            color: red;
+            font-weight: bold;
+        }
+
+        #tasoImg {
+            width: 20%;
+            transition: opacity 0.5s ease; /* smooth fade */
+            opacity: 1;
+        }
+
+        /* Progress bar styles */
+        #progress-container {
+            width: 200px;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4caf50;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <h1><a id="otsikko" href="index.html"><img src="mato.svg" alt="matikkamato" style="width:10%;height:10%;">matikkamato</a></h1>
+    <img id="tasoImg" src="taso-0.png" alt="Taso Image">
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+    <h2>Kertotaulut</h2>
+
+    <div id="game-container">
+        <p id="question"></p>
+        <div id="answer-box"></div>
+        <p id="result"></p>
+        <p>Oikeat vastaukset: <span id="correct">0</span></p>
+        <p>Väärät vastaukset: <span id="incorrect">0</span></p>
+    </div>
+
+    <p>Valitse kertotaulu(t):</p>
+    <select id="table-selection" multiple size="6" onchange="nextQuestion()">
+        <option value="0">Satunnainen (1–10)</option>
+        <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+        <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+    </select><br>
+    <button type="button" onclick="selectAllTables()">Valitse kaikki</button>
+    <button type="button" onclick="clearAllTables()">Tyhjennä valinta</button>
+
+    <script>
+        let correctAnswers = 0, incorrectAnswers = 0;
+        let num1, num2, correctAnswer;
+        let taso = 0;
+        let lastTaso = 0; // for fade effect
+
+        function updateDisplay() {
+            // Calculate level
+            taso = Math.floor(correctAnswers / 10);
+            const img = document.getElementById("tasoImg");
+
+            // Smooth fade when level changes
+            if (taso !== lastTaso) {
+                img.style.opacity = 0;
+                setTimeout(() => {
+                    img.src = `taso-${taso}.png`;
+                    img.style.opacity = 1;
+                }, 500);
+                lastTaso = taso;
+            }
+
+            // Update progress bar
+            const progress = (correctAnswers % 10) * 10; // 0–100%
+            document.getElementById("progress-bar").style.width = `${progress}%`;
+        }
+
+        function getSelectedTables() {
+            return Array.from(document.getElementById("table-selection").selectedOptions).map(opt => parseInt(opt.value));
+        }
+
+        function generateQuestion() {
+            const selectedTables = getSelectedTables();
+            if (selectedTables.length === 0 || selectedTables.includes(0)) {
+                num2 = Math.floor(Math.random() * 10) + 1;
+            } else {
+                num2 = selectedTables[Math.floor(Math.random() * selectedTables.length)];
+            }
+            num1 = Math.floor(Math.random() * 10) + 1;
+            correctAnswer = num1 * num2;
+            document.getElementById("question").textContent = `${num1} ∙ ${num2} =`;
+            generateAnswerBox();
+        }
+
+        function generateAnswerBox() {
+            const div = document.getElementById("answer-box");
+            div.innerHTML = '';
+            const input = document.createElement("input");
+            input.type = "number";
+            input.id = "user-answer";
+            input.placeholder = "Vastaus";
+
+            const btn = document.createElement("button");
+            btn.textContent = "Vastaa";
+            btn.onclick = () => checkTextAnswer(parseInt(input.value));
+
+            div.appendChild(input);
+            div.appendChild(btn);
+
+            input.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") checkTextAnswer(parseInt(input.value));
+            });
+        }
+
+        function checkTextAnswer(value) {
+            let delay;
+            if (value === correctAnswer) {
+                correctAnswers++;
+                document.getElementById("result").innerHTML = "<span class='correct-text'>Oikein!</span>";
+                document.getElementById("correct").textContent = correctAnswers;
+                delay = 2000;
+            } else {
+                incorrectAnswers++;
+                document.getElementById("result").innerHTML = `<span class='incorrect-text'>Väärin!</span> Oikea vastaus on ${correctAnswer}.`;
+                document.getElementById("incorrect").textContent = incorrectAnswers;
+                delay = 4000;
+            }
+
+            updateDisplay(); // update level & progress
+            setTimeout(nextQuestion, delay);
+        }
+
+        function nextQuestion() {
+            generateQuestion();
+            document.getElementById("result").textContent = '';
+            const input = document.getElementById("user-answer");
+            if (input) input.value = "";
+        }
+
+        function selectAllTables() {
+            const select = document.getElementById("table-selection");
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].value !== "0") select.options[i].selected = true;
+            }
+            nextQuestion();
+        }
+
+        function clearAllTables() {
+            const select = document.getElementById("table-selection");
+            for (let i = 0; i < select.options.length; i++) select.options[i].selected = false;
+            nextQuestion();
+        }
+
+        // Initialize game
+        generateQuestion();
+        updateDisplay();
+    </script>
+</body>
+</html>
