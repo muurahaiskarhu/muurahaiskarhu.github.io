@@ -21,7 +21,7 @@
 
         #tasoImg {
             width: 20%;
-            transition: opacity 0.5s ease; /* smooth fade */
+            transition: opacity 1.5s ease; /* smooth fade */
             opacity: 1;
         }
 
@@ -79,7 +79,7 @@
 
         function updateDisplay() {
             // Calculate level
-            taso = Math.floor(correctAnswers / 10);
+               taso = Math.min(5, Math.floor(correctAnswers / 10));
             const img = document.getElementById("tasoImg");
 
             // Smooth fade when level changes
