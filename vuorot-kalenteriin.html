@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vuorot kalenteriin</title>
+  <link rel="icon" type="image/x-icon" href="vuorot.ico">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f6f6;
+      --fg: #222;
+      --card-bg: #fff;
+      --border: #ccc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1c;
+        --fg: #e6e6e6;
+        --card-bg: #2a2a2a;
+        --border: #444;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    main {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      font: 1rem/1.4 monospace;
+      color: var(--fg);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 1rem;
+      background: var(--border);
+      color: var(--fg);
+      border: none;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #aaa;
+    }
+
+    @media (max-width: 500px) {
+      main {
+        padding: 1.2rem;
+        border-radius: 0.8rem;
+      }
+      textarea {
+        font-size: 0.95rem;
+        min-height: 180px;
+      }
+      h1 {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+      }
+      button {
+        font-size: 0.95rem;
+        padding: 0.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Vuorot kalenteriin (.ics)</h1>
+    <textarea id="text" placeholder="Liitä vuorolistasi tähän..."></textarea>
+    <button id="download">Lataa .ics-tiedosto</button>
+  </main>
+
+  <script>
+    function sanitizeTitle(title) {
+      // Säilyttää kirjaimet, numerot, välilyönnit ja perusmerkit - _ : , .
+      return title.replace(/[^\w\s\-\_\:\,\.]/g, '');
+    }
+
+    document.getElementById("download").addEventListener("click", () => {
+      const lines = document.getElementById("text").value.trim().split("\n");
+      const YEAR = new Date().getFullYear();
+
+      if (!lines.length || !lines[0].trim()) {
+        alert("Syötä ensin vuorot tekstikenttään!");
+        return;
+      }
+
+      const events = lines.map(line => {
+        line = line.trim();
+        const match = /^(\d{1,2})\.(\d{1,2})\s*(.*)$/.exec(line);
+        if (!match) return null;
+
+        const [ , dayStr, monthStr, restText] = match;
+        const day = parseInt(dayStr, 10);
+        const month = parseInt(monthStr, 10);
+
+        if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+
+        let title = restText || "Vuoro";
+        title = sanitizeTitle(title); // Poistaa rikkomusmerkit
+
+        const start = new Date(YEAR, month - 1, day, 7, 0);
+        const end = new Date(YEAR, month - 1, day, 8, 0);
+
+        const pad = n => n.toString().padStart(2, "0");
+        const fmt = dt =>
+          dt.getUTCFullYear() +
+          pad(dt.getUTCMonth() + 1) +
+          pad(dt.getUTCDate()) +
+          "T" +
+          pad(dt.getUTCHours()) +
+          pad(dt.getUTCMinutes()) +
+          "00Z";
+
+        return `BEGIN:VEVENT
+SUMMARY:${title}
+DTSTART:${fmt(start)}
+DTEND:${fmt(end)}
+END:VEVENT`;
+      }).filter(evt => evt !== null).join("\n");
+
+      if (!events) {
+        alert("Syötteestä ei löytynyt yhtään kelvollista vuororiviä!");
+        return;
+      }
+
+      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\n${events}\nEND:VCALENDAR`;
+      const blob = new Blob([ics], { type: "text/calendar" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "vuorot.ics";
+      a.click();
+    });
+  </script>
+</body>
+</html>
